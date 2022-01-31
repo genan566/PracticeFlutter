@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:pratice/widgets/chart.dart';
+import '../widgets/dynamique_list.dart';
 import './models/transactions.dart';
 import './widgets/NewTransactions.dart';
 // import './widgets/UserTransaction.dart';
 import './widgets/ListBuilder.dart';
+import './widgets/chart.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,18 +18,30 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Personal Expenses',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.red,
+        // accentColor: Colors.amber,
+        fontFamily: "Quicksand",
+        errorColor: Colors.red,
+        // Custom Theme/ Overriding defaut theme values
+        textTheme: ThemeData.light().textTheme.copyWith(
+              headline6: TextStyle(
+                fontFamily: "OpenSans",
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              button: TextStyle(color: Colors.white),
+            ),
+        appBarTheme: AppBarTheme(
+          textTheme: ThemeData.light().textTheme.copyWith(
+                headline6: TextStyle(
+                  fontFamily: "OpenSans",
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+        ),
       ),
       home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
@@ -45,25 +60,46 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final List<Transaction> _userTransactions = [
-    Transaction(
-      id: 't1',
-      title: 'New Shoes',
-      amount: 69.99,
-      date: DateTime.now(),
-    ),
-    Transaction(
-      id: 't2',
-      title: 'Weekly Groceries',
-      amount: 16.53,
-      date: DateTime.now(),
-    ),
+    // Transaction(
+    //   id: 't1',
+    //   title: 'New Shoes',
+    //   amount: 69.99,
+    //   date: DateTime.now(),
+    // ),
+    // Transaction(
+    //   id: 't2',
+    //   title: 'Weekly Groceries',
+    //   amount: 16.53,
+    //   date: DateTime.now(),
+    // ),
   ];
 
-  void _addNewTransaction(String txTitle, double txAmount) {
+  List<Transaction> get _recentTransactions {
+    return _userTransactions.where((tx) {
+      return tx.date.isAfter(
+        DateTime.now().subtract(
+          Duration(days: 7),
+        ),
+      );
+    }).toList();
+  }
+
+  void _deleteTransaction(String id) {
+    setState(() {
+      _userTransactions.removeWhere((tx) => tx.id == id);
+    });
+    // print(id);
+    // for (var i = 0; i < _userTransactions.length; i++) {
+    //   print(id == _userTransactions[i].id);
+    // }
+  }
+
+  void _addNewTransaction(
+      String txTitle, double txAmount, DateTime chosenDate) {
     final newTx = Transaction(
       title: txTitle,
       amount: txAmount,
-      date: DateTime.now(),
+      date: chosenDate,
       id: DateTime.now().toString(),
     );
 
@@ -89,7 +125,13 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Flutter App"),
+        title: Text(
+          "Personal Expenses",
+          style: TextStyle(
+            fontFamily: "OpenSans",
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         actions: <Widget>[
           IconButton(
             onPressed: () => _startAddNewTransaction(context),
@@ -108,27 +150,8 @@ class _MyHomePageState extends State<MyHomePage> {
       body: SingleChildScrollView(
         child: Column(
           children: <Widget>[
-            Container(
-              width: double.infinity,
-              child: Card(
-                color: Theme.of(context).primaryColor,
-                child: Text(
-                  'CHART!',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                elevation: 5,
-              ),
-            ),
-            Container(
-              width: double.infinity,
-              height: 500,
-              margin: EdgeInsets.only(bottom: 15),
-              child: ListBuilder(transactions: _userTransactions),
-            ),
+            Chart(_recentTransactions),
+            DynamiqueList(_userTransactions, _deleteTransaction),
           ],
         ),
       ),
